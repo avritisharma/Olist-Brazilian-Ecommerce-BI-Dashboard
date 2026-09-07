@@ -1,0 +1,202 @@
+// Olist Brazilian E-Commerce Business Intelligence Dashboard
+// DAX Measures
+// Source: Power BI project
+
+// ========================================
+// SALES & ORDERS
+// ========================================
+
+Total Sales =
+SUM(Order_Items[PRICE])
+
+Total Orders =
+DISTINCTCOUNT(Orders[ORDER_ID])
+
+Average Order Value =
+DIVIDE(
+    [Total Sales],
+    [Total Orders],
+    0
+)
+
+Items Sold =
+COUNT(Order_Items[ORDER_ITEM_ID])
+
+Previous Year Sales =
+CALCULATE(
+    [Total Sales],
+    SAMEPERIODLASTYEAR(Date_Table[Date])
+)
+
+Sales Growth YoY =
+DIVIDE(
+    [Total Sales] - [Previous Year Sales],
+    [Previous Year Sales]
+)
+
+Previous Month Sales =
+CALCULATE(
+    [Total Sales],
+    DATEADD(Date_Table[Date], -1, MONTH)
+)
+
+Monthly Sales Growth =
+DIVIDE(
+    [Total Sales] - [Previous Month Sales],
+    [Previous Month Sales]
+)
+
+Running Total Sales =
+CALCULATE(
+    [Total Sales],
+    FILTER(
+        ALLSELECTED(Date_Table[Date]),
+        Date_Table[Date] <= MAX(Date_Table[Date])
+    )
+)
+
+// ========================================
+// CUSTOMER ANALYSIS
+// ========================================
+
+Total Customers =
+CALCULATE(
+    DISTINCTCOUNT(Customers[CUSTOMER_UNIQUE_ID]),
+    TREATAS(
+        VALUES(Orders[CUSTOMER_ID]),
+        Customers[CUSTOMER_ID]
+    )
+)
+
+Average Orders per Customer =
+DIVIDE(
+    [Total Orders],
+    [Total Customers],
+    0
+)
+
+Average Revenue per Customer =
+DIVIDE(
+    [Total Sales],
+    [Total Customers],
+    0
+)
+
+Average Review Score =
+AVERAGE(Reviews[REVIEW_SCORE])
+
+// ========================================
+// PRODUCT & CATEGORY ANALYSIS
+// ========================================
+
+Total Products =
+DISTINCTCOUNT(Products[PRODUCT_ID])
+
+Total Categories =
+DISTINCTCOUNT(Products[PRODUCT_CATEGORY_NAME])
+
+Average Product Price =
+AVERAGE(Order_Items[PRICE])
+
+// ========================================
+// GEOGRAPHIC ANALYSIS
+// ========================================
+
+States Covered =
+DISTINCTCOUNT(Customers[CUSTOMER_STATE])
+
+Cities Covered =
+DISTINCTCOUNT(Customers[CUSTOMER_CITY])
+
+Average Revenue per State =
+DIVIDE(
+    [Total Sales],
+    [States Covered],
+    0
+)
+
+// ========================================
+// SELLER ANALYSIS
+// ========================================
+
+Total Sellers =
+DISTINCTCOUNT(Sellers[SELLER_ID])
+
+Average Revenue per Seller =
+DIVIDE(
+    [Total Sales],
+    [Total Sellers],
+    0
+)
+
+Average Orders per Seller =
+DIVIDE(
+    [Total Orders],
+    [Total Sellers],
+    0
+)
+
+Orders per Seller =
+DISTINCTCOUNT(Order_Items[ORDER_ID])
+
+// ========================================
+// DELIVERY & LOGISTICS
+// ========================================
+
+Delivered Orders =
+CALCULATE(
+    DISTINCTCOUNT(Orders[ORDER_ID]),
+    Orders[ORDER_STATUS] = "delivered"
+)
+
+Finalized Orders =
+CALCULATE(
+    DISTINCTCOUNT(Orders[ORDER_ID]),
+    Orders[ORDER_STATUS] IN {"delivered","canceled","unavailable"}
+)
+
+Delivery Rate =
+DIVIDE(
+    [Delivered Orders],
+    [Finalized Orders],
+    0
+)
+
+Average Delivery Days =
+AVERAGEX(
+    Orders,
+    DATEDIFF(
+        Orders[ORDER_PURCHASE_TIMESTAMP].[Date],
+        Orders[ORDER_DELIVERED_CUSTOMER_DATE],
+        DAY
+    )
+)
+
+Average Estimated Delivery Days =
+AVERAGEX(
+    Orders,
+    DATEDIFF(
+        Orders[ORDER_PURCHASE_TIMESTAMP].[Date],
+        Orders[ORDER_ESTIMATED_DELIVERY_DATE],
+        DAY
+    )
+)
+
+Average Freight Cost =
+AVERAGE(Order_Items[FREIGHT_VALUE])
+
+// ========================================
+// PAYMENT ANALYSIS
+// ========================================
+
+Total Payment Value =
+SUM(Payments[PAYMENT_VALUE])
+
+Average Payment Value =
+AVERAGE(Payments[PAYMENT_VALUE])
+
+Average Installments =
+AVERAGE(Payments[PAYMENT_INSTALLMENTS])
+
+Total Transactions =
+COUNT(Payments[ORDER_ID])
